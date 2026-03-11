@@ -1,4 +1,4 @@
-import { Button } from "@nighttrax/components/button";
+import { Button } from "@demo-of-app-roi/components/button";
 import React from "react";
 
 const Home = () => <Button />;

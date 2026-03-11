@@ -1,5 +1,5 @@
 {
-  "name": "@nighttrax/components",
+  "name": "@demo-of-app-roi/components",
   "version": "1.0.0",
   "scripts": {
     "build": "pnpm run clean && pnpm run compile",
@@ -11,7 +11,7 @@
     "react": "~19.2.0"
   },
   "dependencies": {
-    "@nighttrax/foo": "workspace:*"
+    "@demo-of-app-roi/foo": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.2.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@nighttrax/nextjs-example",
+  "name": "@demo-of-app-roi/nextjs",
   "private": true,
   "version": "1.0.0",
   "scripts": {
@@ -11,7 +11,7 @@
     "next": "~16.1.0",
     "react": "~19.2.0",
     "react-dom": "~19.2.0",
-    "@nighttrax/components": "workspace:*"
+    "@demo-of-app-roi/components": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "~24.10.0",

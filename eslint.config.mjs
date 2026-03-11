@@ -23,7 +23,7 @@ export default tsEslint.config(
 
   {
     files: [
-      "apps/{nextjs,vite,storybook}/**/*.{jsx,tsx}",
+      "apps/nextjs/**/*.{jsx,tsx}",
       "packages/{components}/**/*.{jsx,tsx}",
     ],
     languageOptions: { globals: globals.browser },

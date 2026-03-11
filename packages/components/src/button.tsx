@@ -1,4 +1,4 @@
-import { meaningOfLife } from "@nighttrax/foo";
+import { meaningOfLife } from "@demo-of-app-roi/foo";
 import React, { FC } from "react";
 
 export const Button: FC = () => (

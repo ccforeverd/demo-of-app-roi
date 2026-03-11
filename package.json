@@ -1,5 +1,5 @@
 {
-  "name": "ts-monorepo",
+  "name": "@demo-of-app-roi/root",
   "description": "Template for setting up a TypeScript monorepo",
   "private": true,
   "workspaces": [
@@ -10,8 +10,12 @@
     "docs": "doctoc --title '**Table of content**' README.md",
     "clean": "pnpm run -r clean",
     "build": "pnpm run -r build",
-    "test": "pnpm run -r test",
-    "lint": "eslint ."
+    "build:apps": "pnpm run -r --parallel --filter './apps/*' build",
+    "test": "pnpm run -r test --if-present",
+    "lint": "eslint .",
+    "dev": "pnpm run -r --parallel --filter './apps/*' dev",
+    "dev:next": "pnpm --filter @demo-of-app-roi/nextjs dev",
+    "dev:express": "pnpm --filter @demo-of-app-roi/express dev"
   },
   "devDependencies": {
     "@eslint/js": "~9.39.0",
