@@ -37,11 +37,14 @@ export async function queryRoiData(params: RoiQueryParams): Promise<RoiDataPoint
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+  const limit = Number(process.env.QUERY_LIMIT) || 50000;
+
   const sql = `
     SELECT date, ${ROI_COLUMNS.join(", ")}, install_count
     FROM roi_data
     ${where}
     ORDER BY date ASC
+    LIMIT ${limit}
   `;
 
   const [rows] = await pool.execute<RowDataPacket[]>(sql, values);

@@ -8,8 +8,43 @@ import type { ApiResponse, RoiQueryParams, RoiDataPoint, FilterOptions, ImportRe
 
 const router = Router();
 
+const isDev = process.env.NODE_ENV === "development";
+
+/** 生产环境返回通用错误信息，开发环境返回真实 message */
+function safeErrorMsg(err: unknown): string {
+  if (isDev) {
+    return err instanceof Error ? err.message : String(err);
+  }
+  console.error("[Error]", err);
+  return "内部服务器错误，请稍后再试";
+}
+
+/** 日期格式校验：YYYY-MM-DD */
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** 字符串字段最大长度 */
+const MAX_STR_LEN = 100;
+
+function validateQueryParams(
+  params: Partial<RoiQueryParams>
+): string | null {
+  for (const key of ["app", "country", "bid_type", "install_channel"] as const) {
+    const val = params[key];
+    if (val !== undefined && val.length > MAX_STR_LEN) {
+      return `参数 ${key} 长度不能超过 ${MAX_STR_LEN} 个字符`;
+    }
+  }
+  for (const key of ["start_date", "end_date"] as const) {
+    const val = params[key];
+    if (val !== undefined && !DATE_RE.test(val)) {
+      return `参数 ${key} 格式应为 YYYY-MM-DD`;
+    }
+  }
+  return null;
+}
+
 const devOnly = (_req: Request, res: Response, next: NextFunction): void => {
-  if (process.env.NODE_ENV !== "development") {
+  if (!isDev) {
     const response: ApiResponse<null> = {
       success: false,
       data: null,
@@ -49,9 +84,7 @@ router.get("/filters", async (_req: Request, res: Response) => {
     const response: ApiResponse<FilterOptions> = { success: true, data: options, error: null };
     res.json(response);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const response: ApiResponse<null> = { success: false, data: null, error: msg };
-    res.status(500).json(response);
+    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 
@@ -105,6 +138,12 @@ router.get("/data", async (req: Request, res: Response) => {
       end_date: req.query.end_date as string | undefined,
     };
 
+    const validationError = validateQueryParams(params);
+    if (validationError) {
+      res.status(400).json({ success: false, data: null, error: validationError });
+      return;
+    }
+
     let data = await queryRoiData(params);
     if (req.query.predict === "true") {
       data = applyLinearPrediction(data);
@@ -113,9 +152,7 @@ router.get("/data", async (req: Request, res: Response) => {
     const response: ApiResponse<RoiDataPoint[]> = { success: true, data, error: null };
     res.json(response);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const response: ApiResponse<null> = { success: false, data: null, error: msg };
-    res.status(500).json(response);
+    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 
@@ -149,9 +186,7 @@ router.post("/import", upload.single("file"), async (req: Request, res: Response
     const response: ApiResponse<ImportResult> = { success: true, data: result, error: null };
     res.json(response);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const response: ApiResponse<null> = { success: false, data: null, error: msg };
-    res.status(500).json(response);
+    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
   } finally {
     // 清理上传的临时文件
     if (req.file?.path) {
@@ -182,9 +217,7 @@ router.delete("/clear", devOnly, async (_req: Request, res: Response) => {
     };
     res.json(response);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const response: ApiResponse<null> = { success: false, data: null, error: msg };
-    res.status(500).json(response);
+    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 

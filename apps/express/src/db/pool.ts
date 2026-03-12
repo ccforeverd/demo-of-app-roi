@@ -1,14 +1,24 @@
 import mysql from "mysql2/promise";
 
+const isDev = process.env.NODE_ENV === "development";
+
+function requireEnv(key: string, fallback?: string): string {
+  const val = process.env[key] || fallback;
+  if (!val) {
+    throw new Error(`缺少必要的环境变量: ${key}，请检查 .env 文件`);
+  }
+  return val;
+}
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || "app_roi_user",
-  password: process.env.DB_PASSWORD || "app_roi_pass",
-  database: process.env.DB_NAME || "app_roi",
+  host: requireEnv("DB_HOST", isDev ? "localhost" : undefined),
+  port: Number(requireEnv("DB_PORT", isDev ? "3306" : undefined)),
+  user: requireEnv("DB_USER", isDev ? "app_roi_user" : undefined),
+  password: requireEnv("DB_PASSWORD", isDev ? "app_roi_pass" : undefined),
+  database: requireEnv("DB_NAME", isDev ? "app_roi" : undefined),
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
+  queueLimit: 100,
   charset: "utf8mb4",
 });
 

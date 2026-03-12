@@ -9,8 +9,25 @@ import { testConnection } from "./db/pool";
 const app = express();
 const port = Number(process.env.PORT) || 3001;
 
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // 允许无 origin 的请求（curl、Swagger UI 本机调用等）
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} 不在白名单中`));
+      }
+    },
+    methods: ["GET", "POST", "DELETE"],
+  })
+);
+app.use(express.json({ limit: "1mb" }));
 
 // Swagger 文档
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

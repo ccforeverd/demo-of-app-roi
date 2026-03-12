@@ -3,11 +3,13 @@ services:
     image: mysql:8.0
     container_name: app-roi-mysql
     restart: unless-stopped
+    env_file:
+      - apps/express/.env
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: app_roi
-      MYSQL_USER: app_roi_user
-      MYSQL_PASSWORD: app_roi_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DB_NAME:-app_roi}
+      MYSQL_USER: ${DB_USER:-app_roi_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-app_roi_pass}
     ports:
       - "3306:3306"
     volumes:
