@@ -18,17 +18,22 @@ cd demo-of-app-roi
 # 2. 安装依赖
 pnpm install
 
-# 3. 构建共享包
+# 3. 复制环境变量文件
+cp apps/express/.env.example apps/express/.env
+cp apps/nextjs/.env.example apps/nextjs/.env
+
+# 4. 构建共享包
 pnpm --filter @demo-of-app-roi/shared build
 
-# 4. 启动 MySQL
+# 5. 启动 MySQL
 docker compose up -d
 
-# 5. 启动后端 (端口 3001)
-pnpm dev:express
+# 6. 一键启动前后端
+pnpm dev
 
-# 6. 启动前端 (端口 3000)
-pnpm dev:next
+# 或分别启动
+# pnpm dev:express   # 后端 http://localhost:3001
+# pnpm dev:next      # 前端 http://localhost:3000
 ```
 
 ### 访问地址
@@ -39,7 +44,9 @@ pnpm dev:next
 | 后端 API | http://localhost:3001 |
 | Swagger 文档 | http://localhost:3001/api-docs |
 
-## 2. 数据导入操作指南
+> 端口可在各应用的 `.env` 文件中通过 `PORT` 变量修改。
+
+## 2. 数据操作指南
 
 ### 方式一: 通过 API 导入
 
@@ -55,6 +62,20 @@ curl -X POST http://localhost:3001/api/roi/import \
 3. 点击 "Try it out"
 4. 上传 CSV 文件
 5. 点击 "Execute"
+
+### 清空数据（仅开发环境）
+
+需要 `apps/express/.env` 中设置 `NODE_ENV=development`。
+
+```bash
+# 命令行
+curl -X DELETE http://localhost:3001/api/roi/clear
+
+# 或通过 Swagger UI：http://localhost:3001/api-docs
+# 找到 DELETE /api/roi/clear → Try it out → Execute
+```
+
+> 生产环境中该接口返回 403，需将 `.env` 中 `NODE_ENV` 改为 `production`。
 
 ### CSV 文件格式要求
 

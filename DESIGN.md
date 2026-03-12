@@ -132,6 +132,15 @@
 }
 ```
 
+### DELETE /api/roi/clear
+
+清空所有 ROI 数据。**仅开发环境可调用**（`NODE_ENV=development`），其他环境返回 403。
+
+**响应:**
+```json
+{ "success": true, "data": { "deleted_rows": 910 }, "error": null }
+```
+
 ## 4. 前端组件架构
 
 ```

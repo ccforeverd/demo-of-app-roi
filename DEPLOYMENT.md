@@ -50,9 +50,12 @@ mysql -u root -p < apps/express/src/db/schema.sql
 
 ## 3. 后端环境变量
 
-文件: `apps/express/.env`
+文件: `apps/express/.env`（从 `.env.example` 复制）
+
+后端使用 `dotenv` 自动加载该文件，无需额外配置。
 
 ```env
+NODE_ENV=development   # 开发环境；生产部署改为 production
 PORT=3001
 DB_HOST=localhost
 DB_PORT=3306
@@ -61,11 +64,17 @@ DB_PASSWORD=app_roi_pass
 DB_NAME=app_roi
 ```
 
+> 注意：`NODE_ENV=development` 时，`DELETE /api/roi/clear` 接口可用；
+> 生产环境将 `NODE_ENV` 设为 `production` 或直接删除该行，该接口会返回 403。
+
 ## 4. 前端环境变量
 
-文件: `apps/nextjs/.env.local`
+文件: `apps/nextjs/.env`（从 `.env.example` 复制）
+
+Next.js 自动加载该文件。
 
 ```env
+PORT=3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
@@ -88,11 +97,12 @@ pnpm dev:next
 # 构建所有包
 pnpm build
 
+# 修改后端 .env：NODE_ENV=production（屏蔽 clear 接口）
 # 启动后端
 cd apps/express && pnpm start
 
 # 前端使用 Next.js 生产模式
-cd apps/nextjs && pnpm build && npx next start
+cd apps/nextjs && npx next start
 ```
 
 ## 6. 数据初始化

@@ -25,7 +25,11 @@
 # 1. 安装依赖
 pnpm install
 
-# 2. 构建共享包（首次必须，后端和前端都依赖它）
+# 2. 复制环境变量文件
+cp apps/express/.env.example apps/express/.env
+cp apps/nextjs/.env.example apps/nextjs/.env
+
+# 3. 构建共享包（首次必须，后端和前端都依赖它）
 pnpm --filter @demo-of-app-roi/shared build
 ```
 
@@ -39,7 +43,7 @@ docker compose up -d
 docker compose ps
 ```
 
-默认连接信息（见 `apps/express/.env`）：
+默认连接信息（见 `apps/express/.env`，从 `.env.example` 复制）：
 
 | 配置项   | 值           |
 | -------- | ------------ |
@@ -73,7 +77,9 @@ curl -X POST http://localhost:3001/api/roi/import \
   -F "file=@example/app_roi_data.csv"
 ```
 
-### 清空数据
+### 清空数据（仅开发环境）
+
+需要 `apps/express/.env` 中设置 `NODE_ENV=development`，否则返回 403。
 
 ```sh
 curl -X DELETE http://localhost:3001/api/roi/clear
@@ -109,7 +115,7 @@ Next.js 开发模式自带 HMR，修改即时生效。
 API 地址通过环境变量配置，如需修改：
 
 ```sh
-# apps/nextjs/.env.local
+# apps/nextjs/.env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 

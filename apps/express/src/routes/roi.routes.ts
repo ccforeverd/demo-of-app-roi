@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -7,6 +7,19 @@ import { queryRoiData, applyLinearPrediction, getFilterOptions, clearAllData } f
 import type { ApiResponse, RoiQueryParams, RoiDataPoint, FilterOptions, ImportResult } from "@demo-of-app-roi/shared";
 
 const router = Router();
+
+const devOnly = (_req: Request, res: Response, next: NextFunction): void => {
+  if (process.env.NODE_ENV !== "development") {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: "该接口仅在开发环境可用",
+    };
+    res.status(403).json(response);
+    return;
+  }
+  next();
+};
 
 const upload = multer({
   dest: path.join(process.cwd(), "uploads"),
@@ -151,13 +164,15 @@ router.post("/import", upload.single("file"), async (req: Request, res: Response
  * @swagger
  * /api/roi/clear:
  *   delete:
- *     summary: 清空所有 ROI 数据
+ *     summary: 清空所有 ROI 数据（仅开发环境）
  *     tags: [ROI]
  *     responses:
  *       200:
  *         description: 清空结果
+ *       403:
+ *         description: 非开发环境禁止访问
  */
-router.delete("/clear", async (_req: Request, res: Response) => {
+router.delete("/clear", devOnly, async (_req: Request, res: Response) => {
   try {
     const deleted_rows = await clearAllData();
     const response: ApiResponse<{ deleted_rows: number }> = {
