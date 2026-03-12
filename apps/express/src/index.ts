@@ -25,7 +25,7 @@ app.use(
       }
     },
     methods: ["GET", "POST", "DELETE"],
-  })
+  }),
 );
 app.use(express.json({ limit: "1mb" }));
 

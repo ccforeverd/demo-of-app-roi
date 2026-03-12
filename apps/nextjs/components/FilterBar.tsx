@@ -1,10 +1,18 @@
-import React from "react";
 import { Select } from "./ui/select";
 import { useRoiStore } from "../store/useRoiStore";
 import { useFilters } from "../hooks/useRoiData";
 
 export function FilterBar() {
-  const { app, country, bidType, installChannel, setApp, setCountry, setBidType, setInstallChannel } = useRoiStore();
+  const {
+    app,
+    country,
+    bidType,
+    installChannel,
+    setApp,
+    setCountry,
+    setBidType,
+    setInstallChannel,
+  } = useRoiStore();
   const { data: filters } = useFilters();
 
   return (

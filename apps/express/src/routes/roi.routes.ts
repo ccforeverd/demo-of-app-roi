@@ -1,10 +1,26 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+import {
+  Router,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { importCsv } from "../services/import.service";
-import { queryRoiData, applyLinearPrediction, getFilterOptions, clearAllData } from "../services/roi.service";
-import type { ApiResponse, RoiQueryParams, RoiDataPoint, FilterOptions, ImportResult } from "@demo-of-app-roi/shared";
+import {
+  queryRoiData,
+  applyLinearPrediction,
+  getFilterOptions,
+  clearAllData,
+} from "../services/roi.service";
+import type {
+  ApiResponse,
+  RoiQueryParams,
+  RoiDataPoint,
+  FilterOptions,
+  ImportResult,
+} from "@demo-of-app-roi/shared";
 
 const router = Router();
 
@@ -25,10 +41,13 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 /** 字符串字段最大长度 */
 const MAX_STR_LEN = 100;
 
-function validateQueryParams(
-  params: Partial<RoiQueryParams>
-): string | null {
-  for (const key of ["app", "country", "bid_type", "install_channel"] as const) {
+function validateQueryParams(params: Partial<RoiQueryParams>): string | null {
+  for (const key of [
+    "app",
+    "country",
+    "bid_type",
+    "install_channel",
+  ] as const) {
     const val = params[key];
     if (val !== undefined && val.length > MAX_STR_LEN) {
       return `参数 ${key} 长度不能超过 ${MAX_STR_LEN} 个字符`;
@@ -81,10 +100,16 @@ const upload = multer({
 router.get("/filters", async (_req: Request, res: Response) => {
   try {
     const options = await getFilterOptions();
-    const response: ApiResponse<FilterOptions> = { success: true, data: options, error: null };
+    const response: ApiResponse<FilterOptions> = {
+      success: true,
+      data: options,
+      error: null,
+    };
     res.json(response);
   } catch (err) {
-    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
+    res
+      .status(500)
+      .json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 
@@ -140,7 +165,9 @@ router.get("/data", async (req: Request, res: Response) => {
 
     const validationError = validateQueryParams(params);
     if (validationError) {
-      res.status(400).json({ success: false, data: null, error: validationError });
+      res
+        .status(400)
+        .json({ success: false, data: null, error: validationError });
       return;
     }
 
@@ -149,10 +176,16 @@ router.get("/data", async (req: Request, res: Response) => {
       data = applyLinearPrediction(data);
     }
 
-    const response: ApiResponse<RoiDataPoint[]> = { success: true, data, error: null };
+    const response: ApiResponse<RoiDataPoint[]> = {
+      success: true,
+      data,
+      error: null,
+    };
     res.json(response);
   } catch (err) {
-    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
+    res
+      .status(500)
+      .json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 
@@ -174,26 +207,40 @@ router.get("/data", async (req: Request, res: Response) => {
  *       200:
  *         description: 导入结果
  */
-router.post("/import", upload.single("file"), async (req: Request, res: Response) => {
-  if (!req.file) {
-    const response: ApiResponse<null> = { success: false, data: null, error: "请上传 CSV 文件" };
-    res.status(400).json(response);
-    return;
-  }
-
-  try {
-    const result = await importCsv(req.file.path);
-    const response: ApiResponse<ImportResult> = { success: true, data: result, error: null };
-    res.json(response);
-  } catch (err) {
-    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
-  } finally {
-    // 清理上传的临时文件
-    if (req.file?.path) {
-      fs.unlink(req.file.path, () => {});
+router.post(
+  "/import",
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: "请上传 CSV 文件",
+      };
+      res.status(400).json(response);
+      return;
     }
-  }
-});
+
+    try {
+      const result = await importCsv(req.file.path);
+      const response: ApiResponse<ImportResult> = {
+        success: true,
+        data: result,
+        error: null,
+      };
+      res.json(response);
+    } catch (err) {
+      res
+        .status(500)
+        .json({ success: false, data: null, error: safeErrorMsg(err) });
+    } finally {
+      // 清理上传的临时文件
+      if (req.file?.path) {
+        fs.unlink(req.file.path, () => {});
+      }
+    }
+  },
+);
 
 /**
  * @swagger
@@ -217,7 +264,9 @@ router.delete("/clear", devOnly, async (_req: Request, res: Response) => {
     };
     res.json(response);
   } catch (err) {
-    res.status(500).json({ success: false, data: null, error: safeErrorMsg(err) });
+    res
+      .status(500)
+      .json({ success: false, data: null, error: safeErrorMsg(err) });
   }
 });
 

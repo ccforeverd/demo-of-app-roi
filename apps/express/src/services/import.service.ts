@@ -39,9 +39,12 @@ function readCsv(filePath: string): Promise<CsvRow[]> {
   return new Promise((resolve, reject) => {
     const rows: CsvRow[] = [];
     fs.createReadStream(filePath)
-      .pipe(csvParser({
-        mapHeaders: ({ header }: { header: string }) => header.replace(/^\uFEFF/, ""),
-      }))
+      .pipe(
+        csvParser({
+          mapHeaders: ({ header }: { header: string }) =>
+            header.replace(/^\uFEFF/, ""),
+        }),
+      )
       .on("data", (row: CsvRow) => rows.push(row))
       .on("end", () => resolve(rows))
       .on("error", reject);
@@ -57,7 +60,7 @@ function isInsufficientData(
   period: number,
   roiValue: number,
   installCount: number,
-  maxDate: string
+  maxDate: string,
 ): boolean {
   if (installCount === 0) return false; // 安装量=0 时, 0% 是真实的
   if (roiValue !== 0) return false; // 非零值一定是真实数据
@@ -77,7 +80,16 @@ export async function importCsv(filePath: string): Promise<ImportResult> {
   const dates = rows.map((r) => parseDate(r.日期));
   const maxDate = dates.reduce((a, b) => (a > b ? a : b));
 
-  const roiFields = ["当日ROI", "1日ROI", "3日ROI", "7日ROI", "14日ROI", "30日ROI", "60日ROI", "90日ROI"] as const;
+  const roiFields = [
+    "当日ROI",
+    "1日ROI",
+    "3日ROI",
+    "7日ROI",
+    "14日ROI",
+    "30日ROI",
+    "60日ROI",
+    "90日ROI",
+  ] as const;
   const errors: string[] = [];
   let imported = 0;
   let skipped = 0;
@@ -104,11 +116,14 @@ export async function importCsv(filePath: string): Promise<ImportResult> {
       for (const row of batch) {
         try {
           const date = parseDate(row.日期);
-          const installCount = parseInt(row["应用安装.总次数"].replace(/,/g, ""), 10) || 0;
+          const installCount =
+            parseInt(row["应用安装.总次数"].replace(/,/g, ""), 10) || 0;
           const roiValues = roiFields.map((field, idx) => {
             const val = parsePercent(row[field]);
             const period = ROI_PERIODS[idx];
-            return isInsufficientData(date, period, val, installCount, maxDate) ? null : val;
+            return isInsufficientData(date, period, val, installCount, maxDate)
+              ? null
+              : val;
           });
 
           await conn.execute(sql, [
@@ -138,5 +153,10 @@ export async function importCsv(filePath: string): Promise<ImportResult> {
     }
   }
 
-  return { total_rows: rows.length, imported_rows: imported, skipped_rows: skipped, errors };
+  return {
+    total_rows: rows.length,
+    imported_rows: imported,
+    skipped_rows: skipped,
+    errors,
+  };
 }

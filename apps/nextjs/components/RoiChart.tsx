@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import ReactEChartsCore from "echarts-for-react/lib/core";
 import * as echarts from "echarts/core";
 import { LineChart } from "echarts/charts";
@@ -9,10 +9,27 @@ import {
   MarkLineComponent,
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
-import type { RoiDataPoint, DisplayMode, YAxisScale } from "@demo-of-app-roi/shared";
-import { ROI_PERIODS, ROI_PERIOD_LABELS, ROI_CHART_COLORS, MOVING_AVERAGE_DAYS, BREAKEVEN_LINE_COLOR } from "@demo-of-app-roi/shared";
+import type {
+  RoiDataPoint,
+  DisplayMode,
+  YAxisScale,
+} from "@demo-of-app-roi/shared";
+import {
+  ROI_PERIODS,
+  ROI_PERIOD_LABELS,
+  ROI_CHART_COLORS,
+  MOVING_AVERAGE_DAYS,
+  BREAKEVEN_LINE_COLOR,
+} from "@demo-of-app-roi/shared";
 
-echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, CanvasRenderer]);
+echarts.use([
+  LineChart,
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  MarkLineComponent,
+  CanvasRenderer,
+]);
 
 interface RoiChartProps {
   readonly data: RoiDataPoint[];
@@ -21,10 +38,15 @@ interface RoiChartProps {
 }
 
 /** 计算移动平均 */
-function movingAverage(values: (number | null)[], window: number): (number | null)[] {
+function movingAverage(
+  values: (number | null)[],
+  window: number,
+): (number | null)[] {
   return values.map((_, idx) => {
     const start = Math.max(0, idx - window + 1);
-    const slice = values.slice(start, idx + 1).filter((v): v is number => v != null);
+    const slice = values
+      .slice(start, idx + 1)
+      .filter((v): v is number => v != null);
     if (slice.length === 0) return null;
     return slice.reduce((a, b) => a + b, 0) / slice.length;
   });
@@ -82,7 +104,11 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
                 data: [
                   {
                     yAxis: 100,
-                    lineStyle: { color: BREAKEVEN_LINE_COLOR, width: 2, type: "solid" as const },
+                    lineStyle: {
+                      color: BREAKEVEN_LINE_COLOR,
+                      width: 2,
+                      type: "solid" as const,
+                    },
                     label: {
                       formatter: "100%回本线",
                       position: "insideStartTop" as const,
@@ -110,12 +136,21 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
     return {
       tooltip: {
         trigger: "axis" as const,
-        formatter: (params: Array<{ seriesName: string; value: number | null; marker: string }>) => {
+        formatter: (
+          params: Array<{
+            seriesName: string;
+            value: number | null;
+            marker: string;
+          }>,
+        ) => {
           const validParams = params.filter((p) => p.value != null);
           if (validParams.length === 0) return "";
           const header = `<div style="font-weight:bold;margin-bottom:4px">${(params as Array<{ axisValueLabel?: string }>)[0]?.axisValueLabel ?? ""}</div>`;
           const rows = validParams
-            .map((p) => `<div>${p.marker} ${p.seriesName}: ${(p.value as number).toFixed(2)}%</div>`)
+            .map(
+              (p) =>
+                `<div>${p.marker} ${p.seriesName}: ${(p.value as number).toFixed(2)}%</div>`,
+            )
             .join("");
           return header + rows;
         },
@@ -124,10 +159,13 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
         type: "scroll" as const,
         bottom: 0,
         data: ROI_PERIODS.map((p) => `${ROI_PERIOD_LABELS[p]}(7日均值)`).concat(
-          ROI_PERIODS.map((p) => `${ROI_PERIOD_LABELS[p]}(7日均值) 预测`)
+          ROI_PERIODS.map((p) => `${ROI_PERIOD_LABELS[p]}(7日均值) 预测`),
         ),
         selected: Object.fromEntries(
-          ROI_PERIODS.map((p) => [`${ROI_PERIOD_LABELS[p]}(7日均值) 预测`, true])
+          ROI_PERIODS.map((p) => [
+            `${ROI_PERIOD_LABELS[p]}(7日均值) 预测`,
+            true,
+          ]),
         ),
       },
       grid: {

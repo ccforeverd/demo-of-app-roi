@@ -55,8 +55,11 @@ mysql -u root -p < apps/express/src/db/schema.sql
 后端使用 `dotenv` 自动加载该文件，无需额外配置。
 
 ```env
-NODE_ENV=development   # 开发环境；生产部署改为 production
+NODE_ENV=development          # 开发环境；生产部署改为 production
 PORT=3001
+ALLOWED_ORIGINS=http://localhost:3000   # 允许跨域的前端地址，多个用逗号分隔
+QUERY_LIMIT=50000             # 单次查询最大返回行数，默认 50000
+MYSQL_ROOT_PASSWORD=root123   # Docker Compose MySQL root 密码
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=app_roi_user
@@ -64,8 +67,32 @@ DB_PASSWORD=app_roi_pass
 DB_NAME=app_roi
 ```
 
-> 注意：`NODE_ENV=development` 时，`DELETE /api/roi/clear` 接口可用；
-> 生产环境将 `NODE_ENV` 设为 `production` 或直接删除该行，该接口会返回 403。
+**各变量说明:**
+
+| 变量 | 说明 | 生产建议 |
+|------|------|---------|
+| `NODE_ENV` | 运行环境；`development` 时 `/clear` 接口可用 | 改为 `production` |
+| `ALLOWED_ORIGINS` | CORS 白名单，仅列出的域名可跨域访问 API | 改为实际前端域名 |
+| `QUERY_LIMIT` | 防止全表查询导致内存溢出 | 按业务调整 |
+| `MYSQL_ROOT_PASSWORD` | 仅 docker-compose 使用 | 改为强密码 |
+| `DB_PASSWORD` | 数据库连接密码 | 改为强密码 |
+
+> 生产环境中，`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME` 为必填项；缺失时服务将拒绝启动。
+
+### 生产环境最小配置示例
+
+```env
+NODE_ENV=production
+PORT=3001
+ALLOWED_ORIGINS=https://your-frontend-domain.com
+QUERY_LIMIT=50000
+MYSQL_ROOT_PASSWORD=<strong-root-password>
+DB_HOST=your-db-host
+DB_PORT=3306
+DB_USER=your-db-user
+DB_PASSWORD=<strong-password>
+DB_NAME=app_roi
+```
 
 ## 4. 前端环境变量
 
@@ -124,3 +151,13 @@ curl http://localhost:3001/api/health
 # 成功: "MySQL 连接成功"
 # 失败: "MySQL 连接失败: ..."
 ```
+
+## 8. 安全注意事项
+
+| 项目 | 开发环境 | 生产环境 |
+|------|---------|---------|
+| `NODE_ENV` | `development` | **`production`**（屏蔽 `/clear` 接口） |
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | **实际前端域名**，不可使用通配符 |
+| 数据库密码 | 示例弱密码 | **强密码**，不得与示例相同 |
+| `.env` 文件 | 本地保留 | **不提交 Git**（已在 `.gitignore` 中配置） |
+| 错误信息 | 返回详细 message | 统一返回"内部服务器错误"，细节仅记录到服务端日志 |

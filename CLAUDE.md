@@ -30,8 +30,11 @@ pnpm build:apps                               # 仅构建 apps（并行）
 
 **apps/express/.env**（使用 `dotenv` 自动加载）:
 ```env
-NODE_ENV=development   # development 时 /clear 接口可用，production 时 403
+NODE_ENV=development          # development 时 /clear 接口可用，production 时 403
 PORT=3001
+ALLOWED_ORIGINS=http://localhost:3000  # CORS 白名单，多个地址逗号分隔
+QUERY_LIMIT=50000             # 单次查询最大返回行数
+MYSQL_ROOT_PASSWORD=root123   # Docker Compose root 密码
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=app_roi_user
@@ -63,7 +66,7 @@ curl -X POST http://localhost:3001/api/roi/import -F "file=@example/app_roi_data
 - `GET /api/roi/data?app=&country=&predict=true` - ROI 数据查询
 - `POST /api/roi/import` - CSV 导入 (multipart/form-data)
 - `DELETE /api/roi/clear` - 清空所有数据 (**仅 NODE_ENV=development 可用，否则 403**)
-- `GET /api/docs` - Swagger 文档
+- `GET /api-docs` - Swagger 文档
 - `GET /api/health` - 健康检查
 
 ## Code Conventions
@@ -72,3 +75,13 @@ curl -X POST http://localhost:3001/api/roi/import -F "file=@example/app_roi_data
 - Shared types in `packages/shared/src/types.ts`
 - API response envelope: `{ success, data, error }`
 - ROI values stored as percentages (6.79 = 6.79%, not 0.0679)
+
+## Security
+
+- **CORS**: 通过 `ALLOWED_ORIGINS` 环境变量配置白名单，`index.ts` 中 `cors()` 已限定 origin
+- **错误信息**: `safeErrorMsg()` 在 `production` 时返回通用信息，细节仅记录到 `console.error`
+- **输入校验**: `validateQueryParams()` 校验日期格式（`YYYY-MM-DD`）与字符串长度（最大 100 字符）
+- **查询限制**: `queryRoiData` 使用 `LIMIT ${QUERY_LIMIT}` 防止全表返回
+- **dev-only 接口**: `devOnly` 中间件保护 `DELETE /api/roi/clear`，非 `development` 返回 403
+- **DB 凭据**: `pool.ts` 中生产环境必须通过环境变量注入，缺失时抛出错误拒绝启动
+- **`.env` 不入库**: 已在 `.gitignore` 中配置 `**/.env`

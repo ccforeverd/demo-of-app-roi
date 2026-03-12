@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SelectProps {
   readonly label: string;
   readonly value: string;

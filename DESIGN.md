@@ -87,15 +87,22 @@
 
 **查询参数:**
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| app | string | 否 | 应用名称 |
-| country | string | 否 | 国家地区 |
-| bid_type | string | 否 | 出价类型 |
-| install_channel | string | 否 | 安装渠道 |
-| start_date | string (YYYY-MM-DD) | 否 | 起始日期 |
-| end_date | string (YYYY-MM-DD) | 否 | 结束日期 |
-| predict | boolean | 否 | 是否返回线性外推预测数据 |
+| 参数 | 类型 | 必填 | 校验规则 | 说明 |
+|------|------|------|---------|------|
+| app | string | 否 | 最大 100 字符 | 应用名称 |
+| country | string | 否 | 最大 100 字符 | 国家地区 |
+| bid_type | string | 否 | 最大 100 字符 | 出价类型 |
+| install_channel | string | 否 | 最大 100 字符 | 安装渠道 |
+| start_date | string | 否 | 格式 `YYYY-MM-DD` | 起始日期 |
+| end_date | string | 否 | 格式 `YYYY-MM-DD` | 结束日期 |
+| predict | boolean | 否 | — | 是否返回线性外推预测数据 |
+
+**参数校验失败返回 400:**
+```json
+{ "success": false, "data": null, "error": "参数 start_date 格式应为 YYYY-MM-DD" }
+```
+
+**返回行数上限:** 由环境变量 `QUERY_LIMIT` 控制，默认 50000 行。
 
 **响应:**
 ```json
@@ -141,7 +148,20 @@
 { "success": true, "data": { "deleted_rows": 910 }, "error": null }
 ```
 
-## 4. 前端组件架构
+## 4. 安全设计
+
+| 层级 | 措施 | 实现位置 |
+|------|------|---------|
+| CORS | `ALLOWED_ORIGINS` 白名单，拒绝未列出的 origin | `apps/express/src/index.ts` |
+| 输入校验 | 日期格式 + 字符串长度校验，不合法返回 400 | `routes/roi.routes.ts` `validateQueryParams()` |
+| 查询限制 | `LIMIT ${QUERY_LIMIT}` 防止全表返回 | `services/roi.service.ts` `queryRoiData()` |
+| 错误脱敏 | 生产环境返回通用错误，细节仅记录服务端日志 | `routes/roi.routes.ts` `safeErrorMsg()` |
+| Dev-only 接口 | `NODE_ENV !== development` 时 `/clear` 返回 403 | `routes/roi.routes.ts` `devOnly` 中间件 |
+| DB 凭据 | 生产环境必须通过环境变量注入，缺失时服务拒绝启动 | `db/pool.ts` `requireEnv()` |
+| 连接池 | `queueLimit=100`，防止连接请求无限堆积 | `db/pool.ts` |
+| JSON body | 请求体限制 1MB，防止大体积请求 DoS | `apps/express/src/index.ts` |
+
+## 5. 前端组件架构
 
 ```
 pages/index.tsx (主页)

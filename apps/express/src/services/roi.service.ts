@@ -1,12 +1,18 @@
 import pool from "../db/pool";
-import type { RoiDataPoint, RoiQueryParams, FilterOptions } from "@demo-of-app-roi/shared";
+import type {
+  RoiDataPoint,
+  RoiQueryParams,
+  FilterOptions,
+} from "@demo-of-app-roi/shared";
 import { ROI_PERIODS } from "@demo-of-app-roi/shared";
 import type { RowDataPacket } from "mysql2";
 
 const ROI_COLUMNS = ROI_PERIODS.map((p) => `roi_d${p}`);
 
 /** 查询 ROI 数据 */
-export async function queryRoiData(params: RoiQueryParams): Promise<RoiDataPoint[]> {
+export async function queryRoiData(
+  params: RoiQueryParams,
+): Promise<RoiDataPoint[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
 
@@ -35,7 +41,8 @@ export async function queryRoiData(params: RoiQueryParams): Promise<RoiDataPoint
     values.push(params.end_date);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const limit = Number(process.env.QUERY_LIMIT) || 50000;
 
@@ -76,13 +83,26 @@ function toDataPoint(row: RowDataPacket): RoiDataPoint {
   };
 }
 
-type RoiField = "roi_d0" | "roi_d1" | "roi_d3" | "roi_d7" | "roi_d14" | "roi_d30" | "roi_d60" | "roi_d90";
+type RoiField =
+  | "roi_d0"
+  | "roi_d1"
+  | "roi_d3"
+  | "roi_d7"
+  | "roi_d14"
+  | "roi_d30"
+  | "roi_d60"
+  | "roi_d90";
 
 function getRoiValue(point: RoiDataPoint, col: RoiField): number | null {
   return point[col];
 }
 
-function withRoiValue(point: RoiDataPoint, col: RoiField, value: number, predicted: boolean): RoiDataPoint {
+function withRoiValue(
+  point: RoiDataPoint,
+  col: RoiField,
+  value: number,
+  predicted: boolean,
+): RoiDataPoint {
   return {
     ...point,
     [col]: value,
@@ -130,7 +150,10 @@ export function applyLinearPrediction(data: RoiDataPoint[]): RoiDataPoint[] {
   }, data);
 }
 
-function linearRegression(points: Array<{ x: number; y: number }>): { slope: number; intercept: number } {
+function linearRegression(points: Array<{ x: number; y: number }>): {
+  slope: number;
+  intercept: number;
+} {
   const n = points.length;
   const sumX = points.reduce((s, p) => s + p.x, 0);
   const sumY = points.reduce((s, p) => s + p.y, 0);
@@ -153,17 +176,24 @@ export async function clearAllData(): Promise<number> {
 
 /** 获取筛选器选项 */
 export async function getFilterOptions(): Promise<FilterOptions> {
-  const [apps] = await pool.execute<RowDataPacket[]>("SELECT DISTINCT app FROM roi_data ORDER BY app");
-  const [countries] = await pool.execute<RowDataPacket[]>("SELECT DISTINCT country FROM roi_data ORDER BY country");
-  const [bidTypes] = await pool.execute<RowDataPacket[]>("SELECT DISTINCT bid_type FROM roi_data ORDER BY bid_type");
+  const [apps] = await pool.execute<RowDataPacket[]>(
+    "SELECT DISTINCT app FROM roi_data ORDER BY app",
+  );
+  const [countries] = await pool.execute<RowDataPacket[]>(
+    "SELECT DISTINCT country FROM roi_data ORDER BY country",
+  );
+  const [bidTypes] = await pool.execute<RowDataPacket[]>(
+    "SELECT DISTINCT bid_type FROM roi_data ORDER BY bid_type",
+  );
   const [channels] = await pool.execute<RowDataPacket[]>(
-    "SELECT DISTINCT install_channel FROM roi_data ORDER BY install_channel"
+    "SELECT DISTINCT install_channel FROM roi_data ORDER BY install_channel",
   );
   const [dateRange] = await pool.execute<RowDataPacket[]>(
-    "SELECT MIN(date) as min_date, MAX(date) as max_date FROM roi_data"
+    "SELECT MIN(date) as min_date, MAX(date) as max_date FROM roi_data",
   );
 
-  const formatDate = (d: unknown) => (d instanceof Date ? d.toISOString().split("T")[0] : String(d ?? ""));
+  const formatDate = (d: unknown) =>
+    d instanceof Date ? d.toISOString().split("T")[0] : String(d ?? "");
 
   return {
     apps: apps.map((r) => r.app),

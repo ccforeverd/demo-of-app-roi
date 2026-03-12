@@ -1,4 +1,3 @@
-import React from "react";
 import { RadioGroup } from "./ui/radio-group";
 import { useRoiStore } from "../store/useRoiStore";
 import type { DisplayMode, YAxisScale } from "@demo-of-app-roi/shared";
@@ -14,7 +13,8 @@ const Y_AXIS_OPTIONS = [
 ] as const;
 
 export function DisplayControls() {
-  const { displayMode, yAxisScale, setDisplayMode, setYAxisScale } = useRoiStore();
+  const { displayMode, yAxisScale, setDisplayMode, setYAxisScale } =
+    useRoiStore();
 
   return (
     <div className="flex items-center justify-center gap-12 rounded-lg border border-border bg-card p-4">

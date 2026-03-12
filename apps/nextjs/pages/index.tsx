@@ -1,4 +1,3 @@
-import React from "react";
 import { FilterBar } from "../components/FilterBar";
 import { DisplayControls } from "../components/DisplayControls";
 import { RoiChart } from "../components/RoiChart";

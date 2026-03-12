@@ -27,7 +27,10 @@ export default tsEslint.config(
       "packages/{components}/**/*.{jsx,tsx}",
     ],
     languageOptions: { globals: globals.browser },
-    extends: [pluginReact.configs.flat.recommended],
+    extends: [
+      pluginReact.configs.flat.recommended,
+      pluginReact.configs.flat["jsx-runtime"],
+    ],
     settings: {
       react: {
         version: "detect",

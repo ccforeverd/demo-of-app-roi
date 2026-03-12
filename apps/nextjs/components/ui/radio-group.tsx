@@ -1,5 +1,3 @@
-import React from "react";
-
 interface RadioOption<T extends string> {
   readonly label: string;
   readonly value: T;
@@ -20,7 +18,9 @@ export function RadioGroup<T extends string>({
 }: RadioGroupProps<T>) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-muted-foreground">{groupLabel}</span>
+      <span className="text-xs font-medium text-muted-foreground">
+        {groupLabel}
+      </span>
       <div className="flex items-center gap-4">
         {options.map((opt) => (
           <label
@@ -35,7 +35,13 @@ export function RadioGroup<T extends string>({
               onChange={() => onChange(opt.value)}
               className="h-4 w-4 accent-primary"
             />
-            <span className={value === opt.value ? "text-primary font-medium" : "text-muted-foreground"}>
+            <span
+              className={
+                value === opt.value
+                  ? "text-primary font-medium"
+                  : "text-muted-foreground"
+              }
+            >
               {opt.label}
             </span>
           </label>
