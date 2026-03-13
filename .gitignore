@@ -7,3 +7,4 @@ results
 .env.local
 **/.env
 **/.env.local
+.ssh
