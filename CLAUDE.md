@@ -12,7 +12,9 @@ App ROI Dashboard - 应用投资回报率趋势数据看板系统。TypeScript m
 ├── packages/shared      # 前后端公共类型与常量
 ├── packages/components  # 共享 React 组件
 ├── packages/foo         # 共享工具包
-└── docker-compose.yml   # MySQL 8.0 数据库
+├── docker-compose.yml   # 本地 MySQL 8.0 数据库
+├── docker-compose.deploy.yml  # 一体化部署（Next.js + Express + MySQL）
+└── Dockerfile           # 全栈应用镜像构建文件
 ```
 
 ## Key Commands
@@ -26,9 +28,12 @@ docker compose up -d                            # 启动 MySQL
 pnpm dev                                        # 同时启动前后端
 pnpm dev:express                                # 仅启动后端 :3001
 pnpm dev:next                                   # 仅启动前端 :3000
+pnpm test                                       # 运行所有工作区测试（自动跳过无 test 的包）
 pnpm build                                      # 全量构建（packages + apps 按依赖顺序）
 pnpm build:apps                                 # 仅构建 apps（并行）
 pnpm run lint                                   # ESLint 检查
+pnpm docker:up                                  # Docker 一体化启动（默认暴露 :3000）
+pnpm docker:stop                                # 停止 Docker 一体化部署
 ```
 
 ## Shared Package

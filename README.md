@@ -64,6 +64,19 @@ pnpm dev:express   # 后端 http://localhost:3001
 pnpm dev:next      # 前端 http://localhost:3000
 ```
 
+## Docker 一体化启动（前后端 + MySQL）
+
+```sh
+# 构建并启动（默认 http://localhost:3000）
+pnpm docker:up
+
+# 如果 3000 被占用
+APP_PORT=3300 pnpm docker:up
+
+# 停止
+pnpm docker:stop
+```
+
 ## 导入数据
 
 ### 方式一：页面上传
@@ -91,10 +104,18 @@ curl -X DELETE http://localhost:3001/api/roi/clear
 | ------------ | --------------------------------------- |
 | 前端页面     | <http://localhost:3000>                 |
 | 后端 API     | <http://localhost:3001>                 |
+| 前端代理 API | <http://localhost:3000/api>             |
 | Swagger 文档 | <http://localhost:3001/api-docs>        |
 | 健康检查     | <http://localhost:3001/api/health>      |
 
 ## 调试
+
+### 质量检查
+
+```sh
+pnpm test
+pnpm run lint
+```
 
 ### 后端调试
 
@@ -117,6 +138,12 @@ API 地址通过环境变量配置，如需修改：
 ```sh
 # apps/nextjs/.env
 NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+Docker 一体化部署时建议配置为：
+
+```sh
+NEXT_PUBLIC_API_URL=/api
 ```
 
 ### 数据库调试

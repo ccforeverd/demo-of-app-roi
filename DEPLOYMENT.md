@@ -12,13 +12,21 @@
 | Docker Compose | 2.x |
 | MySQL | 8.0 |
 
-### 端口占用
+### 端口占用（开发模式）
 
 | 服务 | 端口 |
 |------|------|
 | Next.js 前端 | 3000 |
 | Express 后端 | 3001 |
 | MySQL | 3306 |
+
+### 端口占用（Docker 一体化部署）
+
+| 服务 | 端口 |
+|------|------|
+| 对外入口（Next.js） | 3000（可通过 `APP_PORT` 覆盖） |
+| 容器内 Express | 3001（仅容器内访问） |
+| MySQL | 3306（容器网络） |
 
 ## 2. 数据库配置
 
@@ -105,6 +113,12 @@ PORT=3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
+Docker 一体化部署时推荐：
+
+```env
+NEXT_PUBLIC_API_URL=/api
+```
+
 ## 5. 构建与启动
 
 ### 开发模式
@@ -132,6 +146,29 @@ cd apps/express && pnpm start
 cd apps/nextjs && npx next start
 ```
 
+### Docker 一体化部署（推荐生产演示）
+
+```bash
+# 启动（构建 app 镜像 + 启动 app + mysql）
+pnpm docker:up
+
+# 若本机 3000 被占用，可覆盖对外端口
+APP_PORT=3300 pnpm docker:up
+
+# 查看状态
+docker compose -f docker-compose.deploy.yml ps
+
+# 查看日志
+docker compose -f docker-compose.deploy.yml logs -f app
+
+# 停止
+pnpm docker:stop
+```
+
+说明：
+- 前端统一通过 `/api/*` 访问后端（Next.js rewrite 转发到容器内 Express）
+- Docker 模式下建议将 `NEXT_PUBLIC_API_URL` 设为 `/api`（`docker-compose.deploy.yml` 已内置）
+
 ## 6. 数据初始化
 
 启动后端服务后, 导入示例数据:
@@ -146,6 +183,9 @@ curl -X POST http://localhost:3001/api/roi/import \
 ```bash
 # 后端健康检查
 curl http://localhost:3001/api/health
+
+# Docker 一体化部署健康检查（通过前端网关）
+curl http://localhost:3000/api/health
 
 # 数据库连接检查 (查看后端启动日志)
 # 成功: "MySQL 连接成功"

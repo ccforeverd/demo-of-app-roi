@@ -18,6 +18,7 @@ Next.js 前端页面，ROI 数据看板。
 pnpm dev      # next dev（热重载，端口读取自 .env PORT）
 pnpm build    # next build（生产构建）
 pnpm start    # next start（生产启动，需先 build）
+pnpm test     # vitest run（单元测试）
 pnpm clean    # rimraf .next
 ```
 
@@ -81,6 +82,7 @@ lib/
 ## API Client (`lib/api.ts`)
 
 - `API_BASE`：从 `NEXT_PUBLIC_API_URL` 读取，默认 `http://localhost:3001`
+- 当 `NEXT_PUBLIC_API_URL=/api`（Docker 一体化部署）时，`lib/api.ts` 会自动去重前缀，避免出现 `/api/api/*`
 - `fetchFilters()` → `GET /api/roi/filters`
 - `fetchRoiData(params)` → `GET /api/roi/data?...`
 - `uploadCsv(file)` → `POST /api/roi/import`

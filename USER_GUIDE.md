@@ -42,9 +42,25 @@ pnpm dev
 |------|------|
 | 前端页面 | http://localhost:3000 |
 | 后端 API | http://localhost:3001 |
+| 前端代理 API | http://localhost:3000/api |
 | Swagger 文档 | http://localhost:3001/api-docs |
 
 > 端口可在各应用的 `.env` 文件中通过 `PORT` 变量修改。
+
+### Docker 一体化部署（可选）
+
+```bash
+# 构建并启动前后端 + MySQL（默认对外端口 3000）
+pnpm docker:up
+
+# 3000 占用时可自定义对外端口
+APP_PORT=3300 pnpm docker:up
+
+# 停止
+pnpm docker:stop
+```
+
+> Docker 一体化模式下，前端通过 `/api/*` 访问后端。
 
 ## 2. 数据操作指南
 
