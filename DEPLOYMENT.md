@@ -1,73 +1,56 @@
 # 部署文档 (DEPLOYMENT.md)
 
-## 1. 环境配置要求
+本文档覆盖从本地部署到生产部署的完整流程，包含环境依赖、数据库配置、项目安装、数据初始化、启动方式和生产环境配置。
 
-### 系统要求
+## 1. 环境依赖清单（Node.js、数据库等）
 
-| 组件 | 最低版本 |
-|------|----------|
-| Node.js | 18.x |
-| pnpm | 10.x |
-| Docker | 20.x |
-| Docker Compose | 2.x |
-| MySQL | 8.0 |
+| 组件 | 推荐版本 | 说明 |
+|---|---|---|
+| Node.js | >= 18（推荐 20+） | 前后端运行环境 |
+| pnpm | >= 10 | monorepo 包管理 |
+| MySQL | 8.0 | 主数据库 |
+| Docker | >= 20 | 推荐用于数据库与一体化部署 |
+| Docker Compose | >= 2 | 容器编排 |
 
-### 端口占用（开发模式）
+默认端口：
 
-| 服务 | 端口 |
-|------|------|
-| Next.js 前端 | 3000 |
-| Express 后端 | 3001 |
-| MySQL | 3306 |
+| 服务 | 端口 | 说明 |
+|---|---|---|
+| Next.js 前端 | 3000 | Web 页面入口 |
+| Express 后端 | 3001 | API 服务 |
+| MySQL | 3306 | 数据库服务 |
 
-### 端口占用（Docker 一体化部署）
+## 2. 数据库安装和配置
 
-| 服务 | 端口 |
-|------|------|
-| 对外入口（Next.js） | 3000（可通过 `APP_PORT` 覆盖） |
-| 容器内 Express | 3001（仅容器内访问） |
-| MySQL | 3306（容器网络） |
-
-## 2. 数据库配置
-
-### Docker Compose 方式 (推荐)
+### 2.1 使用 Docker 安装 MySQL（推荐）
 
 ```bash
 docker compose up -d
 ```
 
-默认配置 (docker-compose.yml):
+`docker-compose.yml` 默认配置：
 
-| 配置项 | 值 |
-|--------|-----|
-| 数据库名 | app_roi |
-| 用户名 | app_roi_user |
-| 密码 | app_roi_pass |
-| Root 密码 | root123 |
-| 字符集 | utf8mb4 |
+- 数据库名：`app_roi`
+- 用户：`app_roi_user`
+- 密码：`app_roi_pass`
+- Root 密码：`root123`
+- 字符集：`utf8mb4`
 
-数据库 schema 在容器首次启动时自动初始化 (挂载 `schema.sql` 到 `/docker-entrypoint-initdb.d/`)。
+数据库初始化脚本会在首次启动时自动执行：
 
-### 手动配置 MySQL
+- `apps/express/src/db/schema.sql` -> `/docker-entrypoint-initdb.d/01-schema.sql`
 
-如果不使用 Docker, 手动执行:
+### 2.2 手动安装 MySQL（非 Docker）
+
+创建数据库后执行：
 
 ```bash
 mysql -u root -p < apps/express/src/db/schema.sql
 ```
 
-## 3. 后端环境变量
-
-文件: `apps/express/.env`（从 `.env.example` 复制）
-
-后端使用 `dotenv` 自动加载该文件，无需额外配置。
+并在 `apps/express/.env` 中设置正确的数据库连接：
 
 ```env
-NODE_ENV=development          # 开发环境；生产部署改为 production
-PORT=3001
-ALLOWED_ORIGINS=http://localhost:3000   # 允许跨域的前端地址，多个用逗号分隔
-QUERY_LIMIT=50000             # 单次查询最大返回行数，默认 50000
-MYSQL_ROOT_PASSWORD=root123   # Docker Compose MySQL root 密码
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=app_roi_user
@@ -75,55 +58,83 @@ DB_PASSWORD=app_roi_pass
 DB_NAME=app_roi
 ```
 
-**各变量说明:**
+## 3. 项目安装步骤
 
-| 变量 | 说明 | 生产建议 |
-|------|------|---------|
-| `NODE_ENV` | 运行环境；`development` 时 `/clear` 接口可用 | 改为 `production` |
-| `ALLOWED_ORIGINS` | CORS 白名单，仅列出的域名可跨域访问 API | 改为实际前端域名 |
-| `QUERY_LIMIT` | 防止全表查询导致内存溢出 | 按业务调整 |
-| `MYSQL_ROOT_PASSWORD` | 仅 docker-compose 使用 | 改为强密码 |
-| `DB_PASSWORD` | 数据库连接密码 | 改为强密码 |
+```bash
+# 1) 安装依赖
+pnpm install
 
-> 生产环境中，`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME` 为必填项；缺失时服务将拒绝启动。
+# 2) 初始化环境变量
+cp apps/express/.env.example apps/express/.env
+cp apps/nextjs/.env.example apps/nextjs/.env
 
-### 生产环境最小配置示例
+# 3) 首次构建共享包
+pnpm --filter @demo-of-app-roi/shared build
+```
+
+后端关键环境变量（`apps/express/.env`）：
 
 ```env
-NODE_ENV=production
+NODE_ENV=development
 PORT=3001
-ALLOWED_ORIGINS=https://your-frontend-domain.com
+ALLOWED_ORIGINS=http://localhost:3000
 QUERY_LIMIT=50000
-MYSQL_ROOT_PASSWORD=<strong-root-password>
-DB_HOST=your-db-host
+MYSQL_ROOT_PASSWORD=root123
+DB_HOST=localhost
 DB_PORT=3306
-DB_USER=your-db-user
-DB_PASSWORD=<strong-password>
+DB_USER=app_roi_user
+DB_PASSWORD=app_roi_pass
 DB_NAME=app_roi
 ```
 
-## 4. 前端环境变量
-
-文件: `apps/nextjs/.env`（从 `.env.example` 复制）
-
-Next.js 自动加载该文件。
+前端关键环境变量（`apps/nextjs/.env`）：
 
 ```env
 PORT=3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-Docker 一体化部署时推荐：
+## 4. 数据库初始化和 CSV 数据导入
 
-```env
-NEXT_PUBLIC_API_URL=/api
-```
+### 4.1 初始化检查
 
-## 5. 构建与启动
-
-### 开发模式
+启动后端后可检查健康状态：
 
 ```bash
+curl http://localhost:3001/api/health
+```
+
+如果数据库连接成功，后端日志会显示 `MySQL 连接成功`。
+
+### 4.2 导入 CSV 示例数据
+
+```bash
+curl -X POST http://localhost:3001/api/roi/import \
+  -F "file=@example/app_roi_data.csv"
+```
+
+可选方式：通过 Swagger 导入
+
+1. 打开 `http://localhost:3001/api-docs`
+2. 找到 `POST /api/roi/import`
+3. `Try it out` 并上传 CSV 执行
+
+### 4.3 清空数据（仅开发环境）
+
+```bash
+curl -X DELETE http://localhost:3001/api/roi/clear
+```
+
+当 `NODE_ENV=development` 时可用，生产环境会返回 `403`。
+
+## 5. 项目启动方式
+
+### 5.1 开发模式启动
+
+```bash
+# 启动数据库
+docker compose up -d
+
 # 同时启动前后端
 pnpm dev
 
@@ -132,27 +143,24 @@ pnpm dev:express
 pnpm dev:next
 ```
 
-### 生产构建
+### 5.2 生产模式（非 Docker）
 
 ```bash
-# 构建所有包
+# 构建
 pnpm build
 
-# 修改后端 .env：NODE_ENV=production（屏蔽 clear 接口）
-# 启动后端
+# 分别启动
 cd apps/express && pnpm start
-
-# 前端使用 Next.js 生产模式
 cd apps/nextjs && npx next start
 ```
 
-### Docker 一体化部署（推荐生产演示）
+### 5.3 Docker 一体化启动（推荐生产演示）
 
 ```bash
-# 启动（构建 app 镜像 + 启动 app + mysql）
+# 启动
 pnpm docker:up
 
-# 若本机 3000 被占用，可覆盖对外端口
+# 自定义对外端口
 APP_PORT=3300 pnpm docker:up
 
 # 查看状态
@@ -165,39 +173,44 @@ docker compose -f docker-compose.deploy.yml logs -f app
 pnpm docker:stop
 ```
 
-说明：
-- 前端统一通过 `/api/*` 访问后端（Next.js rewrite 转发到容器内 Express）
-- Docker 模式下建议将 `NEXT_PUBLIC_API_URL` 设为 `/api`（`docker-compose.deploy.yml` 已内置）
+## 6. 生产环境配置
 
-## 6. 数据初始化
+### 6.1 后端生产环境变量建议（`apps/express/.env`）
 
-启动后端服务后, 导入示例数据:
-
-```bash
-curl -X POST http://localhost:3001/api/roi/import \
-  -F "file=@example/app_roi_data.csv"
+```env
+NODE_ENV=production
+PORT=3001
+ALLOWED_ORIGINS=https://your-frontend-domain.com
+QUERY_LIMIT=50000
+MYSQL_ROOT_PASSWORD=<strong-root-password>
+DB_HOST=<your-db-host>
+DB_PORT=3306
+DB_USER=<your-db-user>
+DB_PASSWORD=<strong-db-password>
+DB_NAME=app_roi
 ```
 
-## 7. 健康检查
+生产环境中，`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME` 为必填，缺失会导致服务拒绝启动。
+
+### 6.2 前端生产环境变量建议（`apps/nextjs/.env`）
+
+```env
+PORT=3000
+NEXT_PUBLIC_API_URL=/api
+```
+
+当采用 `docker-compose.deploy.yml` 一体化部署时，`NEXT_PUBLIC_API_URL` 已内置为 `/api`。
+
+### 6.3 安全与发布检查清单
+
+- `NODE_ENV` 必须为 `production`
+- `/clear` 接口在生产不可用（403）
+- `ALLOWED_ORIGINS` 仅允许真实前端域名
+- 所有数据库密码使用强密码
+- `.env` 不可提交到 Git 仓库
+- 发布后执行健康检查：
 
 ```bash
-# 后端健康检查
 curl http://localhost:3001/api/health
-
-# Docker 一体化部署健康检查（通过前端网关）
 curl http://localhost:3000/api/health
-
-# 数据库连接检查 (查看后端启动日志)
-# 成功: "MySQL 连接成功"
-# 失败: "MySQL 连接失败: ..."
 ```
-
-## 8. 安全注意事项
-
-| 项目 | 开发环境 | 生产环境 |
-|------|---------|---------|
-| `NODE_ENV` | `development` | **`production`**（屏蔽 `/clear` 接口） |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | **实际前端域名**，不可使用通配符 |
-| 数据库密码 | 示例弱密码 | **强密码**，不得与示例相同 |
-| `.env` 文件 | 本地保留 | **不提交 Git**（已在 `.gitignore` 中配置） |
-| 错误信息 | 返回详细 message | 统一返回"内部服务器错误"，细节仅记录到服务端日志 |

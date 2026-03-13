@@ -95,7 +95,7 @@ curl -X POST http://localhost:3001/api/roi/import \
 需要 `apps/express/.env` 中设置 `NODE_ENV=development`，否则返回 403。
 
 ```sh
-curl -X DELETE http://localhost:3001/api/roi/clear
+curl -i -X DELETE http://localhost:3001/api/roi/clear
 ```
 
 ## 访问地址
