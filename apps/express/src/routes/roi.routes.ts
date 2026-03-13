@@ -256,10 +256,13 @@ router.post(
  */
 router.delete("/clear", devOnly, async (_req: Request, res: Response) => {
   try {
-    const deleted_rows = await clearAllData();
-    const response: ApiResponse<{ deleted_rows: number }> = {
+    const clearResult = await clearAllData();
+    const response: ApiResponse<{
+      deleted_rows: number;
+      remaining_rows: number;
+    }> = {
       success: true,
-      data: { deleted_rows },
+      data: clearResult,
       error: null,
     };
     res.json(response);

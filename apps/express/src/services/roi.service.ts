@@ -169,9 +169,32 @@ function linearRegression(points: Array<{ x: number; y: number }>): {
 }
 
 /** 清空所有 ROI 数据 */
-export async function clearAllData(): Promise<number> {
-  const [result] = await pool.execute("DELETE FROM roi_data");
-  return (result as { affectedRows: number }).affectedRows;
+export async function clearAllData(): Promise<{
+  deleted_rows: number;
+  remaining_rows: number;
+}> {
+  const [beforeRows] = await pool.execute<RowDataPacket[]>(
+    "SELECT COUNT(*) AS total FROM roi_data",
+  );
+  const before = Number(beforeRows[0]?.total ?? 0);
+
+  // 优先使用 TRUNCATE（更快并重置自增），若权限不足则回退 DELETE
+  try {
+    await pool.execute("TRUNCATE TABLE roi_data");
+  } catch {
+    await pool.execute("DELETE FROM roi_data");
+  }
+
+  const [afterRows] = await pool.execute<RowDataPacket[]>(
+    "SELECT COUNT(*) AS total FROM roi_data",
+  );
+  const after = Number(afterRows[0]?.total ?? 0);
+
+  if (after !== 0) {
+    throw new Error(`清理失败，仍有 ${after} 条数据未删除`);
+  }
+
+  return { deleted_rows: before, remaining_rows: after };
 }
 
 /** 获取筛选器选项 */

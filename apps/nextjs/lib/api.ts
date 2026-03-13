@@ -44,12 +44,18 @@ export async function uploadCsv(file: File): Promise<ImportResult> {
   return body.data as ImportResult;
 }
 
-export async function clearData(): Promise<{ deleted_rows: number }> {
+export async function clearData(): Promise<{
+  deleted_rows: number;
+  remaining_rows: number;
+}> {
   const res = await fetch(buildApiUrl("/api/roi/clear"), { method: "DELETE" });
   if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
-  const body: ApiResponse<{ deleted_rows: number }> = await res.json();
+  const body: ApiResponse<{
+    deleted_rows: number;
+    remaining_rows: number;
+  }> = await res.json();
   if (!body.success) throw new Error(body.error ?? "Unknown error");
-  return body.data as { deleted_rows: number };
+  return body.data as { deleted_rows: number; remaining_rows: number };
 }
 
 export function fetchRoiData(
