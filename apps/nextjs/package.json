@@ -5,7 +5,9 @@
   "scripts": {
     "clean": "rimraf .next",
     "dev": "next dev",
-    "build": "next build"
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run"
   },
   "dependencies": {
     "@demo-of-app-roi/components": "workspace:*",
@@ -25,6 +27,7 @@
     "@types/react-dom": "~19.2.0",
     "rimraf": "~6.1.0",
     "tailwindcss": "~4.1.0",
-    "typescript": "~5.9.0"
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.0"
   }
 }

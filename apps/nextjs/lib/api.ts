@@ -8,8 +8,19 @@ import type {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+export function buildApiUrl(path: string, apiBase = API_BASE): string {
+  const base = apiBase.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (base.endsWith("/api") && normalizedPath.startsWith("/api/")) {
+    return `${base}${normalizedPath.slice(4)}`;
+  }
+
+  return `${base}${normalizedPath}`;
+}
+
 async function fetchApi<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
+  const res = await fetch(buildApiUrl(path));
   if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
   const body: ApiResponse<T> = await res.json();
   if (!body.success) throw new Error(body.error ?? "Unknown error");
@@ -23,7 +34,7 @@ export function fetchFilters(): Promise<FilterOptions> {
 export async function uploadCsv(file: File): Promise<ImportResult> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch(`${API_BASE}/api/roi/import`, {
+  const res = await fetch(buildApiUrl("/api/roi/import"), {
     method: "POST",
     body: formData,
   });
@@ -34,7 +45,7 @@ export async function uploadCsv(file: File): Promise<ImportResult> {
 }
 
 export async function clearData(): Promise<{ deleted_rows: number }> {
-  const res = await fetch(`${API_BASE}/api/roi/clear`, { method: "DELETE" });
+  const res = await fetch(buildApiUrl("/api/roi/clear"), { method: "DELETE" });
   if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
   const body: ApiResponse<{ deleted_rows: number }> = await res.json();
   if (!body.success) throw new Error(body.error ?? "Unknown error");
