@@ -7,6 +7,7 @@ import {
   TooltipComponent,
   LegendComponent,
   MarkLineComponent,
+  DataZoomComponent,
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import type {
@@ -21,6 +22,7 @@ import {
   MOVING_AVERAGE_DAYS,
   BREAKEVEN_LINE_COLOR,
 } from "@demo-of-app-roi/shared";
+import { useThemeStore } from "../store/useThemeStore";
 
 echarts.use([
   LineChart,
@@ -28,6 +30,7 @@ echarts.use([
   TooltipComponent,
   LegendComponent,
   MarkLineComponent,
+  DataZoomComponent,
   CanvasRenderer,
 ]);
 
@@ -53,7 +56,15 @@ function movingAverage(
 }
 
 export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
+  const { theme } = useThemeStore();
+  const isDark = theme === "dark";
+
   const option = useMemo(() => {
+    const textColor = isDark ? "#94a3b8" : "#64748b";
+    const borderColor = isDark ? "#334155" : "#e2e8f0";
+    const tooltipBg = isDark ? "#1e293b" : "#ffffff";
+    const splitLineColor = isDark ? "#1e293b" : "#f1f5f9";
+
     const dates = data.map((d) => d.date);
 
     const series = ROI_PERIODS.flatMap((period) => {
@@ -134,8 +145,12 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
     });
 
     return {
+      backgroundColor: "transparent",
       tooltip: {
         trigger: "axis" as const,
+        backgroundColor: tooltipBg,
+        borderColor: borderColor,
+        textStyle: { color: textColor },
         formatter: (
           params: Array<{
             seriesName: string;
@@ -145,11 +160,11 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
         ) => {
           const validParams = params.filter((p) => p.value != null);
           if (validParams.length === 0) return "";
-          const header = `<div style="font-weight:bold;margin-bottom:4px">${(params as Array<{ axisValueLabel?: string }>)[0]?.axisValueLabel ?? ""}</div>`;
+          const header = `<div style="font-weight:bold;margin-bottom:4px;color:${isDark ? "#f1f5f9" : "#0f172a"}">${(params as Array<{ axisValueLabel?: string }>)[0]?.axisValueLabel ?? ""}</div>`;
           const rows = validParams
             .map(
               (p) =>
-                `<div>${p.marker} ${p.seriesName}: ${(p.value as number).toFixed(2)}%</div>`,
+                `<div style="color:${textColor}">${p.marker} ${p.seriesName}: ${(p.value as number).toFixed(2)}%</div>`,
             )
             .join("");
           return header + rows;
@@ -158,6 +173,8 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
       legend: {
         type: "scroll" as const,
         bottom: 0,
+        textStyle: { color: textColor },
+        inactiveColor: isDark ? "#475569" : "#cbd5e1",
         data: ROI_PERIODS.map((p) => `${ROI_PERIOD_LABELS[p]}(7日均值)`).concat(
           ROI_PERIODS.map((p) => `${ROI_PERIOD_LABELS[p]}(7日均值) 预测`),
         ),
@@ -172,12 +189,13 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
         left: 60,
         right: 20,
         top: 20,
-        bottom: 60,
+        bottom: 80,
       },
       xAxis: {
         type: "category" as const,
         data: dates,
         axisLabel: {
+          color: textColor,
           formatter: (val: string) => {
             const d = new Date(val);
             return `${d.getMonth() + 1}月${d.getDate()}日`;
@@ -185,24 +203,35 @@ export function RoiChart({ data, displayMode, yAxisScale }: RoiChartProps) {
           rotate: 45,
           fontSize: 10,
         },
+        axisLine: { lineStyle: { color: borderColor } },
+        axisTick: { lineStyle: { color: borderColor } },
         boundaryGap: false,
       },
       yAxis: {
         type: yAxisScale === "log" ? ("log" as const) : ("value" as const),
         axisLabel: {
+          color: textColor,
           formatter: "{value}%",
         },
+        splitLine: { lineStyle: { color: splitLineColor } },
         min: yAxisScale === "log" ? 1 : undefined,
       },
+      dataZoom: [
+        {
+          type: "inside" as const,
+          start: 0,
+          end: 100,
+        },
+      ],
       series,
     };
-  }, [data, displayMode, yAxisScale]);
+  }, [data, displayMode, yAxisScale, isDark]);
 
   return (
     <ReactEChartsCore
       echarts={echarts}
       option={option}
-      style={{ height: 500, width: "100%" }}
+      style={{ height: "100%", minHeight: 400, width: "100%" }}
       notMerge
       lazyUpdate
     />

@@ -6,8 +6,8 @@ App ROI Dashboard - 应用投资回报率趋势数据看板系统。TypeScript m
 
 ## Architecture
 
-```
-├── apps/nextjs          # Next.js 前端（见 apps/nextjs/CLAUDE.md）
+```text
+├── apps/nextjs          # Next.js 前端 - 双主题 + 侧边栏布局（见 apps/nextjs/CLAUDE.md）
 ├── apps/express         # Express 后端 API（见 apps/express/CLAUDE.md）
 ├── packages/shared      # 前后端公共类型与常量
 ├── packages/components  # 共享 React 组件
@@ -60,6 +60,8 @@ pnpm docker:stop                                # 停止 Docker 一体化部署
 - API 响应统一封装：`{ success: boolean, data: T | null, error: string | null }`
 - ROI 值以百分比形式存储（`6.79` = 6.79%，非 `0.0679`）
 - Immutable data patterns，不直接 mutate 对象
+- 前端主题：深色/浅色双主题，Tailwind v4 `@theme inline` + CSS 变量，zustand 管理
+- 前端图标：`react-icons`（`fa6` 集合），不使用 emoji 或内联 SVG
 
 ## Security (Global)
 

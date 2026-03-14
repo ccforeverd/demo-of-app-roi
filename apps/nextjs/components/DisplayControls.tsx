@@ -17,13 +17,14 @@ export function DisplayControls() {
     useRoiStore();
 
   return (
-    <div className="flex items-center justify-center gap-12 rounded-lg border border-border bg-card p-4">
+    <div className="flex flex-col gap-4">
       <RadioGroup
         groupLabel="数据显示模式"
         options={DISPLAY_MODE_OPTIONS}
         value={displayMode}
         onChange={setDisplayMode}
       />
+      <div className="border-t border-border" />
       <RadioGroup
         groupLabel="Y轴刻度"
         options={Y_AXIS_OPTIONS}

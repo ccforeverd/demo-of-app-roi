@@ -17,34 +17,25 @@ export function RadioGroup<T extends string>({
   onChange,
 }: RadioGroupProps<T>) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-muted-foreground">
         {groupLabel}
       </span>
-      <div className="flex items-center gap-4">
+      <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
         {options.map((opt) => (
-          <label
+          <button
             key={opt.value}
-            className="flex cursor-pointer items-center gap-1.5 text-sm"
-          >
-            <input
-              type="radio"
-              name={groupLabel}
-              value={opt.value}
-              checked={value === opt.value}
-              onChange={() => onChange(opt.value)}
-              className="h-4 w-4 accent-primary"
-            />
-            <span
-              className={
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer
+              ${
                 value === opt.value
-                  ? "text-primary font-medium"
-                  : "text-muted-foreground"
-              }
-            >
-              {opt.label}
-            </span>
-          </label>
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+          >
+            {opt.label}
+          </button>
         ))}
       </div>
     </div>

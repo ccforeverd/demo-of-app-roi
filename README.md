@@ -1,11 +1,11 @@
 # demo-of-app-roi
 
-应用 ROI（投资回报率）趋势数据看板系统，包含 CSV 数据导入、后端 API、前端图表交互展示的完整全栈链路。
+应用 ROI（投资回报率）趋势数据看板系统，包含 CSV 数据导入、后端 API、前端图表交互展示的完整全栈链路。支持深色/浅色双主题切换、响应式侧边栏布局、ROI 摘要卡片与 Toast 通知。
 
 ## 结构
 
 ```text
-├── apps/nextjs          # Next.js 前端（端口 3000）
+├── apps/nextjs          # Next.js 前端（端口 3000）- 双主题 + 侧边栏布局
 ├── apps/express         # Express 后端 API（端口 3001）
 ├── packages/shared      # 前后端公共类型与常量
 ├── packages/components  # 共享 React 组件
