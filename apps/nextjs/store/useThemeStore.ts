@@ -21,6 +21,9 @@ export const useThemeStore = create<ThemeStore>((set) => ({
       const next: Theme = state.theme === "dark" ? "light" : "dark";
       if (typeof window !== "undefined") {
         localStorage.setItem("theme", next);
+        const root = document.documentElement;
+        root.setAttribute("data-theme-transition", "");
+        setTimeout(() => root.removeAttribute("data-theme-transition"), 500);
       }
       return { theme: next };
     }),
