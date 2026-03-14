@@ -7,19 +7,28 @@
 ```mermaid
 flowchart LR
   subgraph FE[Next.js Frontend]
-    Page[pages/index.tsx]
+    Page[pages/index.tsx<br/>Header + Sidebar + Main]
     Filter[FilterBar]
     Controls[DisplayControls]
+    Upload[CsvUpload]
+    Summary[RoiSummaryCards]
     Chart[RoiChart + ECharts]
-    Store[zustand store]
+    Toast[Toast 通知]
+    RoiStore[zustand: RoiStore]
+    ThemeStore[zustand: ThemeStore]
+    ToastStore[zustand: ToastStore]
     Query[react-query hook]
     Client[lib/api.ts]
     Page --> Filter
     Page --> Controls
+    Page --> Upload
+    Page --> Summary
     Page --> Chart
-    Filter --> Store
-    Controls --> Store
-    Store --> Query
+    Filter --> RoiStore
+    Controls --> RoiStore
+    Upload --> ToastStore
+    Chart --> ThemeStore
+    RoiStore --> Query
     Query --> Client
   end
 
@@ -51,7 +60,7 @@ flowchart LR
 
 | 层级 | 技术 |
 |---|---|
-| 前端 | Next.js 16 (Pages Router), Tailwind CSS v4, zustand, @tanstack/react-query, echarts |
+| 前端 | Next.js 16 (Pages Router), Tailwind CSS v4, zustand, @tanstack/react-query, echarts, react-icons |
 | 后端 | Express 5, csv-parser, mysql2 (pool), swagger-jsdoc, swagger-ui-express |
 | 数据库 | MySQL 8.0 (Docker) |
 | 共享包 | `@demo-of-app-roi/shared` (类型/常量) |
@@ -275,25 +284,39 @@ erDiagram
 
 ```mermaid
 flowchart TB
-  Page[pages/index.tsx]
+  App[pages/_app.tsx<br/>ThemeApplier + Toast]
+  Page[pages/index.tsx<br/>Header + Sidebar + Main]
   Filter[components/FilterBar.tsx]
   Controls[components/DisplayControls.tsx]
   Chart[components/RoiChart.tsx]
-  Store[store/useRoiStore.ts]
+  Summary[components/RoiSummaryCards.tsx]
+  Upload[components/CsvUpload.tsx]
+  ToastComp[components/Toast.tsx]
+  ThemeStore[store/useThemeStore.ts]
+  ToastStore[store/useToastStore.ts]
+  RoiStore[store/useRoiStore.ts]
   Hook[hooks/useRoiData.ts]
   Api[lib/api.ts]
   UI1[components/ui/select.tsx]
   UI2[components/ui/radio-group.tsx]
 
+  App --> Page
+  App --> ToastComp
   Page --> Filter
   Page --> Controls
+  Page --> Upload
+  Page --> Summary
   Page --> Chart
   Filter --> UI1
   Controls --> UI2
-  Filter --> Store
-  Controls --> Store
-  Chart --> Store
-  Store --> Hook
+  Filter --> RoiStore
+  Controls --> RoiStore
+  Chart --> RoiStore
+  Chart --> ThemeStore
+  Upload --> ToastStore
+  ToastComp --> ToastStore
+  Page --> ThemeStore
+  RoiStore --> Hook
   Hook --> Api
 ```
 
@@ -301,11 +324,17 @@ flowchart TB
 
 | 组件/模块 | 职责 |
 |---|---|
-| `pages/index.tsx` | 组装页面，协调筛选区、控制区和图表区 |
-| `FilterBar.tsx` | 维度筛选（应用、国家、出价、渠道、日期） |
-| `DisplayControls.tsx` | 展示模式控制（原始值/均值、线性/对数） |
-| `RoiChart.tsx` | 绘制 ROI 折线、预测虚线、回本基线、tooltip |
+| `pages/_app.tsx` | QueryClient 初始化、主题应用（ThemeApplier）、全局 Toast 挂载 |
+| `pages/index.tsx` | 全屏布局：Header（标题/主题切换）+ Sidebar（筛选/控制/上传）+ Main（摘要卡片/图表） |
+| `FilterBar.tsx` | 维度筛选（应用、国家、出价、渠道），侧边栏垂直布局 |
+| `DisplayControls.tsx` | 展示模式控制（原始值/均值、线性/对数），Toggle 按钮风格 |
+| `CsvUpload.tsx` | CSV 上传按钮，含进度 spinner，操作结果通过 Toast 反馈 |
+| `RoiChart.tsx` | 绘制 ROI 折线、预测虚线、回本基线、tooltip（主题感知配色） |
+| `RoiSummaryCards.tsx` | D0/D7/D30 ROI 最新值摘要卡片，含趋势箭头指示 |
+| `Toast.tsx` | 全局 Toast 通知（成功/错误），固定右上角，3s 自动消失 |
 | `useRoiStore.ts` | 全局筛选和显示状态 |
+| `useThemeStore.ts` | 深色/浅色主题状态，localStorage 持久化 |
+| `useToastStore.ts` | Toast 通知队列管理 |
 | `useRoiData.ts` | 根据状态触发请求并缓存数据 |
 | `lib/api.ts` | 统一封装 API 请求 |
 
@@ -315,7 +344,23 @@ flowchart TB
 2. `zustand` 状态更新
 3. `react-query` 根据 query key 自动触发请求
 4. 返回数据进入图表数据转换层
-5. ECharts 重绘（含预测虚线与图例状态）
+5. `RoiSummaryCards` 显示最新 ROI 摘要 + ECharts 重绘（含预测虚线与图例状态）
+
+### 4.3 主题切换流程
+
+1. 用户点击 Header 中的主题切换按钮（`FaSun`/`FaMoon`）
+2. `useThemeStore.toggleTheme()` 更新状态并写入 `localStorage`
+3. 临时添加 `data-theme-transition` 属性到 `<html>`（触发 0.4s CSS 过渡）
+4. `ThemeApplier` 组件通过 `useEffect` 在 `<html>` 上切换 `.dark` 类
+5. Tailwind 工具类通过 `var(--color-*)` → `var(--*)` 响应变量变化
+6. ECharts 图表通过 `useThemeStore` 的 `isDark` 重新计算配色
+
+### 4.4 响应式布局
+
+| 断点 | 侧边栏行为 |
+|---|---|
+| `< lg`（移动端/平板） | 隐藏，汉堡菜单触发抽屉式展开 + 半透明遮罩 |
+| `>= lg`（桌面端） | 固定显示 w-72 |
 
 ## 5. 数据流向图（CSV导入 -> 数据库 -> API -> 前端）
 
