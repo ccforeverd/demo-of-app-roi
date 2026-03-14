@@ -1,4 +1,5 @@
 import type { RoiDataPoint } from "@demo-of-app-roi/shared";
+import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
 
 interface RoiSummaryCardsProps {
   readonly data: RoiDataPoint[];
@@ -63,22 +64,18 @@ export function RoiSummaryCards({ data }: RoiSummaryCardsProps) {
           return (
             <div
               key={period}
-              className="flex-shrink-0 rounded-lg border border-border bg-card px-4 py-3 min-w-[140px]"
+              className="shrink-0 rounded-lg border border-border bg-card px-4 py-3 min-w-[140px] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-md"
             >
               <div className="text-xs text-muted-foreground mb-1">{label}</div>
-              <div className="flex items-end gap-2">
+              <div className="flex items-center gap-2">
                 <span className="text-xl font-bold text-card-foreground">
                   {latest != null ? `${latest.toFixed(2)}%` : "—"}
                 </span>
                 {trend === "up" && (
-                  <span className="text-green-500 text-sm font-medium mb-0.5">
-                    ↑
-                  </span>
+                  <FaArrowTrendUp className="text-green-500 text-sm" />
                 )}
                 {trend === "down" && (
-                  <span className="text-red-500 text-sm font-medium mb-0.5">
-                    ↓
-                  </span>
+                  <FaArrowTrendDown className="text-red-500 text-sm" />
                 )}
               </div>
               <div className="text-xs text-muted-foreground mt-1">{period}</div>

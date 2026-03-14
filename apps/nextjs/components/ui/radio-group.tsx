@@ -27,7 +27,7 @@ export function RadioGroup<T extends string>({
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors
+            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer
               ${
                 value === opt.value
                   ? "bg-primary text-primary-foreground"

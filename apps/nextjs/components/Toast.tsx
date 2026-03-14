@@ -1,3 +1,4 @@
+import { FaCircleCheck, FaCircleXmark, FaXmark } from "react-icons/fa6";
 import { useToastStore } from "../store/useToastStore";
 
 export function Toast() {
@@ -18,13 +19,17 @@ export function Toast() {
                 : "bg-card border-red-500/30 text-red-500"
             }`}
         >
-          <span>{toast.type === "success" ? "✅" : "❌"}</span>
+          {toast.type === "success" ? (
+            <FaCircleCheck className="shrink-0" />
+          ) : (
+            <FaCircleXmark className="shrink-0" />
+          )}
           <span>{toast.message}</span>
           <button
             onClick={() => removeToast(toast.id)}
             className="ml-2 text-muted-foreground hover:text-foreground"
           >
-            ✕
+            <FaXmark />
           </button>
         </div>
       ))}

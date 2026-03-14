@@ -1,8 +1,8 @@
-import React, { useRef } from "react";
-import { uploadCsv } from "../lib/api";
+import { type ChangeEvent, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { FaSpinner, FaUpload } from "react-icons/fa6";
+import { uploadCsv } from "../lib/api";
 import { useToastStore } from "../store/useToastStore";
-import { useState } from "react";
 
 export function CsvUpload() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -10,7 +10,7 @@ export function CsvUpload() {
   const queryClient = useQueryClient();
   const { addToast } = useToastStore();
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -45,7 +45,17 @@ export function CsvUpload() {
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
       >
-        {uploading ? "导入中..." : "上传 CSV 文件"}
+        {uploading ? (
+          <>
+            <FaSpinner className="animate-spin" />
+            导入中...
+          </>
+        ) : (
+          <>
+            <FaUpload />
+            上传 CSV 文件
+          </>
+        )}
         <input
           ref={fileRef}
           type="file"
