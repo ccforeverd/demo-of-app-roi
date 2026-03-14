@@ -18,7 +18,9 @@ export function RadioGroup<T extends string>({
 }: RadioGroupProps<T>) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium text-muted-foreground">{groupLabel}</span>
+      <span className="text-xs font-medium text-muted-foreground">
+        {groupLabel}
+      </span>
       <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
         {options.map((opt) => (
           <button

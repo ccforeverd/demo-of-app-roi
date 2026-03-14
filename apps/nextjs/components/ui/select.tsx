@@ -8,7 +8,9 @@ interface SelectProps {
 export function Select({ label, value, options, onChange }: SelectProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <label className="text-xs font-medium text-muted-foreground">
+        {label}
+      </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -18,7 +20,11 @@ export function Select({ label, value, options, onChange }: SelectProps) {
       >
         <option value="">全部</option>
         {options.map((opt) => (
-          <option key={opt} value={opt} className="bg-card text-card-foreground">
+          <option
+            key={opt}
+            value={opt}
+            className="bg-card text-card-foreground"
+          >
             {opt}
           </option>
         ))}

@@ -16,7 +16,10 @@ const CARDS: CardConfig[] = [
   { key: "roi_d30", label: "30日 ROI", period: "D30" },
 ];
 
-function getLatestValue(data: RoiDataPoint[], key: keyof RoiDataPoint): number | null {
+function getLatestValue(
+  data: RoiDataPoint[],
+  key: keyof RoiDataPoint,
+): number | null {
   for (let i = data.length - 1; i >= 0; i--) {
     const val = data[i][key];
     if (val != null) return val as number;
@@ -24,7 +27,10 @@ function getLatestValue(data: RoiDataPoint[], key: keyof RoiDataPoint): number |
   return null;
 }
 
-function getPrevValue(data: RoiDataPoint[], key: keyof RoiDataPoint): number | null {
+function getPrevValue(
+  data: RoiDataPoint[],
+  key: keyof RoiDataPoint,
+): number | null {
   let found = false;
   for (let i = data.length - 1; i >= 0; i--) {
     const val = data[i][key];
@@ -65,10 +71,14 @@ export function RoiSummaryCards({ data }: RoiSummaryCardsProps) {
                   {latest != null ? `${latest.toFixed(2)}%` : "—"}
                 </span>
                 {trend === "up" && (
-                  <span className="text-green-500 text-sm font-medium mb-0.5">↑</span>
+                  <span className="text-green-500 text-sm font-medium mb-0.5">
+                    ↑
+                  </span>
                 )}
                 {trend === "down" && (
-                  <span className="text-red-500 text-sm font-medium mb-0.5">↓</span>
+                  <span className="text-red-500 text-sm font-medium mb-0.5">
+                    ↓
+                  </span>
                 )}
               </div>
               <div className="text-xs text-muted-foreground mt-1">{period}</div>
