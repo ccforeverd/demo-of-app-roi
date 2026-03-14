@@ -16,7 +16,7 @@ export function FilterBar() {
   const { data: filters } = useFilters();
 
   return (
-    <div className="grid grid-cols-4 gap-4 rounded-lg border border-border bg-card p-4">
+    <div className="flex flex-col gap-3">
       <Select
         label="用户安装渠道"
         value={installChannel}
